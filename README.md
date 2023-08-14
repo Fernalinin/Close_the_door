@@ -1,2 +1,12 @@
 # Close_the_door
-Programm for analyse forex database
+This program is designed for the test application of a machine learning model for analyzing the customer base of transactions.
+To debug the program, I created a test transaction history of 100 clients based on the work of free trading robots in Metatrader 5.
+
+Main Menu:
+Download data - download .csv file with transaction history.
+Show data - creates a window with a data table to view
+Select features - opens a window for selecting features that are involved in training the model. Decryption in the same window;
+Describe stat- was previously created to reflect a brief summary of the downloaded data. At the time of publication, this item does not work.
+Predict for one date - opens a window with a field for entering the date at which the analysis will be performed. Below it are 3 buttons for selecting the forecast period (for a week, a month ahead or all of them) and a cancel button. After processing the data, a list with success percentages for a particular period will be displayed above the buttons.
+Predict for custom period - creates an analysis as in the Predict for one date button, but for the period specified by the user. By clicking the results button, it displays a table of the results of the evaluation of the run and a graph with these values.
+Current predict - creating the current forecast. The last date that was in the downloaded data is used as the date of analysis. Then the model is trained and forms a further forecast. The results of the above forecast will be saved in the file directory.
