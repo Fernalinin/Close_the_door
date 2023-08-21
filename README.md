@@ -1,6 +1,6 @@
 # Close_the_door
 forex_ru is aimed at identifying income among the customer database.
-To debug the program, I created a test transaction history of 100 clients based on the work of free trading robots in Metatrader 5.
+To debug the program, I created a test transaction history of 100 clients based on the trades of free trading robots in Metatrader 5.
 
 Main Menu:
 Download data - download .csv file with transaction history.
