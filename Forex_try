@@ -20,18 +20,12 @@ str_list_features = """0 - Volume all, 1 - Volume_count,
 def to_bool_1(df= pd.DataFrame):
     return pd.concat([df[list(df.columns)[0:-2]], df[list(df.columns)[-2:]].applymap(lambda x: 1 if x > 0 else 0 if x < 0 else x)], axis = 1)
 
-def to_bool_2(df= pd.DataFrame):
-    return pd.concat([df[list(df.columns)[0:-1]], df[list(df.columns)[-1:]].applymap(lambda x: 1 if x > 0 else 0 if x < 0 else x)], axis = 1)
-
 def check_status_1 (df=pd.DataFrame(), date = None, is_test = True, features = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15], is_test_w =False,is_test_m =False,is_test_all =True):
     #Функция подготавливает статус всех клиентов на дату среза и выдаёт таблицу для тренировки данных с историческими признаками(до указанной даты) и целевыми ответами (после даты)
-    
-
     #Если не указана дата, то срезает последний месяц и использует его для проверки 
     if date == None:
         date = df['Date'].max() - dt.timedelta(days = 30)
-   
-   
+      
     table = pd.DataFrame()
     
     table['Login']= df.Login.unique()
@@ -131,9 +125,6 @@ def check_status_1 (df=pd.DataFrame(), date = None, is_test = True, features = [
                                             (df['Login'] ==x)]['Profit'].sum())
     return table
 
-    
-
-
 def make_train_1 (df = pd.DataFrame(), date = None, max_train_date = None, is_bool = False, date_period = None,is_test_w =False,is_test_m =False,is_test_all =True, features = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]):
     # Функция берёт на вход данные, дату среза и дату с которой нужно начать обучение => на выходе выдаёт 2 таблицы: 
     # Train_df - таблица с признаками и целевыми значениями за период с max_train_date и до date - неделя. 
@@ -149,9 +140,6 @@ def make_train_1 (df = pd.DataFrame(), date = None, max_train_date = None, is_bo
     
     if max_train_date == None:
         max_train_date = df['Date'].min() + dt.timedelta(days = 180)
-
-    
-
     
     period = date-max_train_date
     date_period = [date]
@@ -163,50 +151,28 @@ def make_train_1 (df = pd.DataFrame(), date = None, max_train_date = None, is_bo
         train_df.drop(['prof_+week','prof_+month'], axis = 1, inplace = True)
         y_of_test = pd.concat([test_df['prof_+week'], test_df['prof_+month']], axis=1)
         test_df.drop(['prof_+week','prof_+month'], axis = 1, inplace = True)
-        # train_df = to_bool_1(train_df)
-        # test_df = to_bool_1(test_df)
+
         y_of_test = y_of_test.applymap(lambda x: 1 if x > 0 else 0 if x < 0 else x)
         y_of_train = y_of_train.applymap(lambda x: 1 if x > 0 else 0 if x < 0 else x)
-
 
     if is_test_w == True:
         y_of_train = pd.DataFrame(train_df['prof_+week'])
         train_df.drop(['prof_+week'], axis = 1, inplace = True)
         y_of_test = pd.DataFrame(test_df['prof_+week'])
         test_df.drop(['prof_+week'], axis = 1, inplace = True)
-        # train_df = to_bool_2(train_df)
-        # test_df = to_bool_2(test_df)
         y_of_test = y_of_test.applymap(lambda x: 1 if x > 0 else 0 if x < 0 else x)
         y_of_train = y_of_train.applymap(lambda x: 1 if x > 0 else 0 if x < 0 else x) 
-
     
     if is_test_m == True:
         y_of_train = pd.DataFrame(train_df['prof_+month'])
         train_df.drop(['prof_+month'], axis = 1, inplace = True)
         y_of_test = pd.DataFrame(test_df['prof_+month'])
         test_df.drop(['prof_+month'], axis = 1, inplace = True)
-        # train_df = to_bool_2(train_df)
-        # test_df = to_bool_2(test_df)
         y_of_test = y_of_test.applymap(lambda x: 1 if x > 0 else 0 if x < 0 else x)
         y_of_train = y_of_train.applymap(lambda x: 1 if x > 0 else 0 if x < 0 else x) 
-    
-    # if is_bool == True:
-    #     if is_test_all == True:
-    #         train_df = to_bool_1(train_df)
-    #         test_df = to_bool_1(test_df)
-    #         y_of_test = y_of_test.applymap(lambda x: 1 if x > 0 else 0 if x < 0 else x)
-    #         y_of_train = y_of_train.applymap(lambda x: 1 if x > 0 else 0 if x < 0 else x)
 
-    #     if is_test_m == True or is_test_w == True:
-    #         train_df = to_bool_2(train_df)
-    #         test_df = to_bool_2(test_df)
-    #         y_of_test = y_of_test.applymap(lambda x: 1 if x > 0 else 0 if x < 0 else x)
-    #         y_of_train = y_of_train.applymap(lambda x: 1 if x > 0 else 0 if x < 0 else x)
-        
     return train_df, y_of_train, test_df, y_of_test
 
-    
-    
 def t_a_c_todf (train, y_train, test, test_y, n_esti=50, bootstrap = True):
     model = RandomForestClassifier(n_estimators=n_esti,
                                bootstrap = bootstrap,
@@ -240,7 +206,6 @@ def t_a_c_todf (train, y_train, test, test_y, n_esti=50, bootstrap = True):
         roc_value_week= roc_auc_score(y_week, pr_week)
         roc_value_month= roc_auc_score(y_month, pr_month)
         return [roc_value, roc_value_week, roc_value_month]
-
 
 def final_cut (df = pd.DataFrame(), date = None, max_train_date = None, is_bool = False, date_period = None, features = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],is_test_w =False,is_test_m =False,is_test_all =True):
     tables = make_train_1(df = df,is_bool= is_bool, date = date, date_period = date_period, features = features, is_test_w =is_test_w ,is_test_m =is_test_m ,is_test_all =is_test_all)
@@ -301,20 +266,20 @@ def read_table():
         title='Dataset to read',
         no_window=True, 
         file_types=(("CSV Files", "*.csv"),("Text Files", "*.txt")))
-    # --- populate table with file contents --- #
+    
     if filename == '':
         return
 
     data = []
     header_list = []
-    colnames_prompt = sg.popup_yes_no('Есть ли названия колонок в этом файле?')
-    nan_prompt = sg.popup_yes_no('Сбросить NaN значения?')
+    colnames_prompt = sg.popup_yes_no('Are there column names in this file?')
+    nan_prompt = sg.popup_yes_no('Reset NaN values?')
 
     if filename is not None:
         fn = filename.split('/')[-1]
         try:                     
             if colnames_prompt == 'Yes':
-                df = pd.read_csv(filename, sep=r"[;,\t]", encoding = "windows-1252",engine='python',na_values='NaN', on_bad_lines='warn')
+                df = pd.read_csv(filename, sep=r"[;,\t]", encoding = "UTF-8",engine='python',na_values='NaN', on_bad_lines='warn')
                 #df.drop(columns = "Unnamed: 0", inplace = True)
                 # Uses the first row (which should be column names) as columns names
                 header_list = list(df.columns)
@@ -322,12 +287,12 @@ def read_table():
                 data = df[1:].values.tolist()
             else:
                 df = pd.read_csv(filename, sep=',', engine='python', header=None)
-                # Creates columns names for each column ('column0', 'column1', etc)
+
                 header_list = ['column' + str(x) for x in range(len(df.iloc[0]))]
                 df.columns = header_list
-                # read everything else into a list of rows
+                
                 data = df.values.tolist()
-            # NaN drop?
+            
             if nan_prompt=='Yes':
                 df = df.dropna()
             
@@ -360,7 +325,7 @@ def select_features():
     choices = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
     layout_sel = [[sg.Text(str_list_features)],
         [sg.Listbox(choices, size=(30, len(choices)), key='-LIST-', select_mode=sg.LISTBOX_SELECT_MODE_MULTIPLE)],
-          [sg.Button('Выбрать', key='-SELECT-')], [sg.Text("Selected features: "),  sg.Listbox([], size=(2, 6), key='-SELECTED-', enable_events=True)]]
+          [sg.Button('Select', key='-SELECT-')], [sg.Text("Selected features: "),  sg.Listbox([], size=(2, 6), key='-SELECTED-', enable_events=True)]]
     window_sel = sg.Window('Select features', layout_sel)
     while True:
         event_sel, values_sel = window_sel.read()
@@ -369,10 +334,9 @@ def select_features():
         elif event_sel == '-SELECT-':
             features = window_sel['-LIST-'].get()
             window_sel['-SELECTED-'].update(features)
-            #window_sel['-SELECTED-TEXT-'].update(f'Выбранные значения: {", ".join(features)}')
+            
     
     return features
-    window_sel.close()
 
 def show_stats(df):
     stats = df.describe().T
@@ -398,43 +362,42 @@ def show_stats(df):
     event, values = window.read()
     window.close()
 
-
-
 def predict_test (df, features = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15], date = None, is_bool = None):
     result_text = sg.Text('', size=(30, 3))
     layout = [
-              [sg.Text('Введите дату в формате YYYY-MM-DD:')],
+              [sg.Text('Enter the date in the format YYYY-MM-DD:')],
               [sg.InputText()],[result_text],
-              [sg.Button('Неделю')],[sg.Button('Месяц')],[sg.Button('Оба')],[sg.Button("Отмена")]]
+              [sg.Button('Week')],[sg.Button('Month')],[sg.Button('All')],[sg.Button("Cancel")]]
 
-    window = sg.Window("Дата для анализа", layout)
+    window = sg.Window("Analysis", layout)
     while True:
         event, values = window.read()
-        if event == "Отмена" or event == sg.WIN_CLOSED:
+        if event == "Cancel" or event == sg.WIN_CLOSED:
             break
-        if event == 'Оба':
-            #try:
-                date_str = values[0]
-                date_obj = dt.datetime.strptime(date_str, '%Y-%m-%d')
+        try:
+            if event == 'All':
                 
-                answer = str(final_cut(df = df,is_bool= True, date = date_obj, features = features))
-                result_text.update(''.join(answer))
-        if event == 'Неделю':
+                    date_str = values[0]
+                    date_obj = dt.datetime.strptime(date_str, '%Y-%m-%d')
+                    
+                    answer = str(final_cut(df = df,is_bool= True, date = date_obj, features = features))
+                    result_text.update(''.join(answer))
+            if event == 'Week':
+                
+                    date_str = values[0]
+                    date_obj = dt.datetime.strptime(date_str, '%Y-%m-%d')
+                    
+                    answer = str(final_cut(df = df,is_bool= True, date = date_obj, features = features, is_test_w =True,is_test_m =False,is_test_all =False))
+                    result_text.update(''.join(answer))
+            if event == 'Month':
             
-                date_str = values[0]
-                date_obj = dt.datetime.strptime(date_str, '%Y-%m-%d')
-                
-                answer = str(final_cut(df = df,is_bool= True, date = date_obj, features = features, is_test_w =True,is_test_m =False,is_test_all =False))
-                result_text.update(''.join(answer))
-        if event == 'Месяц':
-           
-                date_str = values[0]
-                date_obj = dt.datetime.strptime(date_str, '%Y-%m-%d')
-                
-                answer = str(final_cut(df = df,is_bool= True, date = date_obj, features = features, is_test_w =False,is_test_m =True,is_test_all =False))
-                result_text.update(''.join(answer))
-            #except ValueError:
-                #print('Некорректный формат даты')
+                    date_str = values[0]
+                    date_obj = dt.datetime.strptime(date_str, '%Y-%m-%d')
+                    
+                    answer = str(final_cut(df = df,is_bool= True, date = date_obj, features = features, is_test_w =False,is_test_m =True,is_test_all =False))
+                    result_text.update(''.join(answer))
+        except ValueError:
+            print('Некорректный формат даты')
 
     window.close()
 
@@ -448,15 +411,15 @@ def draw_figure(canvas, figure, loc=(0, 0)):
 #Далее она выводит окно с таблицей получившихся результатов и графиком изменения.
 def per_predict_test (df=pd.DataFrame(),date = None, is_bool = None, features = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]):
     
-    layout = [[sg.Text('Введите даты в формате YYYY-MM-DD:')],
-              [sg.Text("c"),sg.HSeparator(pad=(5,0)),sg.InputText(key="-data1-",size=(12,5),expand_y=True),sg.HSeparator(pad=(10,0)),
-               sg.Text("по"),sg.HSeparator(pad=(5,0)),sg.InputText(key="-data2-", size =(12,5),expand_y=True)], 
-              [sg.Button('OK')],[sg.Button('Результаты')],[sg.Button("Отмена")]]
+    layout = [[sg.Text('Enter the date in the format YYYY-MM-DD:')],
+              [sg.Text("from"),sg.HSeparator(pad=(5,0)),sg.InputText(key="-data1-",size=(12,5),expand_y=True),sg.HSeparator(pad=(10,0)),
+               sg.Text("to"),sg.HSeparator(pad=(5,0)),sg.InputText(key="-data2-", size =(12,5),expand_y=True)], 
+              [sg.Button('OK')],[sg.Button('Result')],[sg.Button("Cancel")]]
 
-    window = sg.Window("Дата для анализа", layout)
+    window = sg.Window("Analysis period", layout)
     while True:
         event, values = window.read()
-        if event == "Отмена" or event == sg.WIN_CLOSED:
+        if event == "Cancel" or event == sg.WIN_CLOSED:
             break
         elif event == 'OK':
             try:
@@ -467,9 +430,9 @@ def per_predict_test (df=pd.DataFrame(),date = None, is_bool = None, features = 
                 answer,str_date = check_period(df = df,is_bool= True, start_date = date_obj_1,end_date = date_obj_2, features = features)
                 
             except ValueError:
-                print('Некорректный формат даты')
+                print('Wrong format')
         
-        elif event =='Результаты':
+        elif event =='Result':
             try:
                 show_answer = answer
                 show_answer.insert(0,'Score',["All", "Week", "Month"])
@@ -490,7 +453,7 @@ def per_predict_test (df=pd.DataFrame(),date = None, is_bool = None, features = 
                                         num_rows=min(3, len(data)))
                                         ]]
                 
-                window_res = sg.Window(f"Результаты за период c {date_str_1} по {date_str_2} ", layout_tab,finalize=True)
+                window_res = sg.Window(f"Results for the period from {date_str_1} to {date_str_2} ", layout_tab,finalize=True)
                 index_answer = show_answer.set_index('Score')
                 fig1 = plt.figure(dpi=125)
                 plt.plot(index_answer.transpose())
@@ -498,7 +461,6 @@ def per_predict_test (df=pd.DataFrame(),date = None, is_bool = None, features = 
                 plt.ylabel('Value')
                 plt.legend(['All', 'Week', 'Month'])
                 plt.xticks(str_date, rotation = 90)
-                #plt.show(block = False)
                 canvas_elem = window_res['-CANVAS-'].TKCanvas
                 
                 fig_agg =draw_figure(canvas_elem, fig1)                    
@@ -511,12 +473,9 @@ def per_predict_test (df=pd.DataFrame(),date = None, is_bool = None, features = 
 
                 
             except ValueError:
-                print("Ошибка")
+                print("Error")
             
 
-            
-
-            
     window.close()
 
 def one_predict (df=pd.DataFrame(), fn = None, filename = None ,features = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]):
@@ -529,27 +488,7 @@ def one_predict (df=pd.DataFrame(), fn = None, filename = None ,features = [0,1,
                               n_esti = 50,
                               features = features)
     cur_answer.to_csv('my_data.csv', index=False)
-    # cur_header_list = list(cur_answer.columns)
-    # cur_data = cur_answer.values.tolist()
-    
-
-    # cur_layout = [[sg.Table(values=cur_data,
-    #               headings=cur_header_list,
-    #               font='Helvetica',
-    #               pad=(10,10),
-    #               display_row_numbers=False,
-    #               auto_size_columns=True,
-    #               visible_column_map = 5,
-    #               num_rows=min(25, len(cur_data)))]]
-
-    # cur_window = sg.Window("Таблица прогноза",cur_layout)
-    # while True:
-    #     event, values = cur_window.read()
-    #     if event == sg.WIN_CLOSED:
-    #         break
-    
-        
-    
+ 
 # %% Макет основного окна программы
 
 layout = [
@@ -594,11 +533,6 @@ while True:
             subprocess.Popen('Other\Other.exe')
 
     except Exception as e:
-            print(f'Произошла ошибка: {e}')
-
-
-        
-
-
+            print(f'Error: {e}')
 
 window.close()
