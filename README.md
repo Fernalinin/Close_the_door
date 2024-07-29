@@ -1,5 +1,5 @@
 # Close_the_door
-forex_try is aimed at identifying income among the customer database. I created a test transaction history of 100 clients based on the trades of free trading robots from Metatrader 5.
+forex_try is aimed at identifying positive result of client's trade activity. I created a test transaction history of 100 clients based on the trades of free trading robots from Metatrader 5.
 
 You can check the performance of the forecast on the presented data by following the instructions:       
 1 - download the Deals_History_test.csv file by clicking on the "Download data" button;    
