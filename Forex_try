@@ -1,17 +1,15 @@
-# %% Импорт необходимого
-
 import pandas as pd
 import datetime as dt
 from matplotlib import pyplot as plt
 import PySimpleGUI as sg
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg  
 from sklearn.metrics import roc_auc_score
 from sklearn.ensemble import RandomForestClassifier
 import joblib 
-import subprocess
 
-# %% Фнкции, что непосредственно проводят анализ
 
+# %% Функции, что непосредственно проводят анализ
+features = [0,1,2,3,4,5,6]
 str_list_features = """0 - Volume all, 1 - Volume_count, 
     2 - Deal_count_mean, 3 - prof_-week,
     4 - prof_-month, 5 - prof_-3month,
@@ -251,29 +249,18 @@ def read_table():
 
     data = []
     header_list = []
-    colnames_prompt = sg.popup_yes_no('Есть ли названия колонок в этом файле?')
-    nan_prompt = sg.popup_yes_no('Сбросить NaN значения?')
 
     if filename is not None:
         fn = filename.split('/')[-1]
         try:                     
-            if colnames_prompt == 'Yes':
-                df = pd.read_csv(filename, sep=',', engine='python')
-                df.drop(columns = "Unnamed: 0", inplace = True)
-                # Uses the first row (which should be column names) as columns names
-                header_list = list(df.columns)
-                # Drops the first row in the table (otherwise the header names and the first row will be the same)
-                data = df[1:].values.tolist()
-            else:
-                df = pd.read_csv(filename, sep=',', engine='python', header=None)
-                # Creates columns names for each column ('column0', 'column1', etc)
-                header_list = ['column' + str(x) for x in range(len(df.iloc[0]))]
-                df.columns = header_list
-                # read everything else into a list of rows
-                data = df.values.tolist()
-            # NaN drop?
-            if nan_prompt=='Yes':
-                df = df.dropna()
+            
+            df = pd.read_csv(filename, sep=',', engine='python')
+            df.drop(columns = "Unnamed: 0", inplace = True)
+            # Uses the first row (which should be column names) as columns names
+            header_list = list(df.columns)
+            # Drops the first row in the table (otherwise the header names and the first row will be the same)
+            data = df[1:].values.tolist()
+            
             
             return (df,data, header_list,fn)
         except:
@@ -304,7 +291,7 @@ def select_features():
     choices = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
     layout_sel = [[sg.Text(str_list_features)],
         [sg.Listbox(choices, size=(30, len(choices)), key='-LIST-', select_mode=sg.LISTBOX_SELECT_MODE_MULTIPLE)],
-          [sg.Button('Выбрать', key='-SELECT-')], [sg.Text("Selected features: "),  sg.Listbox([], size=(2, 6), key='-SELECTED-', enable_events=True)]]
+          [sg.Button('Select', key='-SELECT-')], [sg.Text("Selected features: "),  sg.Listbox([], size=(2, 6), key='-SELECTED-', enable_events=True)]]
     window_sel = sg.Window('Select features', layout_sel)
     while True:
         event_sel, values_sel = window_sel.read()
@@ -313,7 +300,7 @@ def select_features():
         elif event_sel == '-SELECT-':
             features = window_sel['-LIST-'].get()
             window_sel['-SELECTED-'].update(features)
-            #window_sel['-SELECTED-TEXT-'].update(f'Выбранные значения: {", ".join(features)}')
+            
     
     return features
     window_sel.close()
@@ -347,14 +334,14 @@ def show_stats(df):
 def predict_test (df, features = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15], date = None, is_bool = None):
     result_text = sg.Text('', size=(30, 3))
     layout = [
-              [sg.Text('Введите дату в формате YYYY-MM-DD:')],
+              [sg.Text('Enter the date in the format YYYY-MM-DD:')],
               [sg.InputText()],[result_text],
-              [sg.Button('OK')],[sg.Button("Отмена")]]
+              [sg.Button('OK')],[sg.Button("Cancel")]]
 
-    window = sg.Window("Дата для анализа", layout)
+    window = sg.Window("Analysis for one date", layout)
     while True:
         event, values = window.read()
-        if event == "Отмена" or event == sg.WIN_CLOSED:
+        if event == "Cancel" or event == sg.WIN_CLOSED:
             break
         elif event == 'OK':
             #try:
@@ -378,15 +365,15 @@ def draw_figure(canvas, figure, loc=(0, 0)):
 #Далее она выводит окно с таблицей получившихся результатов и графиком изменения.
 def per_predict_test (df=pd.DataFrame(),date = None, is_bool = None, features = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]):
     
-    layout = [[sg.Text('Введите даты в формате YYYY-MM-DD:')],
-              [sg.Text("c"),sg.HSeparator(pad=(5,0)),sg.InputText(key="-data1-",size=(12,5),expand_y=True),sg.HSeparator(pad=(10,0)),
-               sg.Text("по"),sg.HSeparator(pad=(5,0)),sg.InputText(key="-data2-", size =(12,5),expand_y=True)], 
-              [sg.Button('OK')],[sg.Button('Результаты')],[sg.Button("Отмена")]]
+    layout = [[sg.Text('Enter the dates in the format YYYY-MM-DD:')],
+              [sg.Text("from"),sg.HSeparator(pad=(5,0)),sg.InputText(key="-data1-",size=(12,5),expand_y=True),sg.HSeparator(pad=(10,0)),
+               sg.Text("to"),sg.HSeparator(pad=(5,0)),sg.InputText(key="-data2-", size =(12,5),expand_y=True)], 
+              [sg.Button('OK')],[sg.Button('Results')],[sg.Button("Cancel")]]
 
-    window = sg.Window("Дата для анализа", layout)
+    window = sg.Window("Analysis for the period", layout)
     while True:
         event, values = window.read()
-        if event == "Отмена" or event == sg.WIN_CLOSED:
+        if event == "Cancel" or event == sg.WIN_CLOSED:
             break
         elif event == 'OK':
             try:
@@ -399,7 +386,7 @@ def per_predict_test (df=pd.DataFrame(),date = None, is_bool = None, features = 
             except ValueError:
                 print('Некорректный формат даты')
         
-        elif event =='Результаты':
+        elif event =='Results':
             try:
                 show_answer = answer
                 show_answer.insert(0,'Score',["All", "Week", "Month"])
@@ -420,7 +407,7 @@ def per_predict_test (df=pd.DataFrame(),date = None, is_bool = None, features = 
                                         num_rows=min(3, len(data)))
                                         ]]
                 
-                window_res = sg.Window(f"Результаты за период c {date_str_1} по {date_str_2} ", layout_tab,finalize=True)
+                window_res = sg.Window(f"Results fo the period from {date_str_1} to {date_str_2} ", layout_tab,finalize=True)
                 index_answer = show_answer.set_index('Score')
                 fig1 = plt.figure(dpi=125)
                 plt.plot(index_answer.transpose())
@@ -460,25 +447,7 @@ def one_predict (df=pd.DataFrame(), fn = None, filename = None ,features = [0,1,
                               n_esti = 500,
                               features = features)
     cur_answer.to_csv('my_data.csv', index=False)
-    # cur_header_list = list(cur_answer.columns)
-    # cur_data = cur_answer.values.tolist()
-    
 
-    # cur_layout = [[sg.Table(values=cur_data,
-    #               headings=cur_header_list,
-    #               font='Helvetica',
-    #               pad=(10,10),
-    #               display_row_numbers=False,
-    #               auto_size_columns=True,
-    #               visible_column_map = 5,
-    #               num_rows=min(25, len(cur_data)))]]
-
-    # cur_window = sg.Window("Таблица прогноза",cur_layout)
-    # while True:
-    #     event, values = cur_window.read()
-    #     if event == sg.WIN_CLOSED:
-    #         break
-    
         
     
 # %% Макет основного окна программы
@@ -488,11 +457,9 @@ layout = [
         [sg.Button('Download data',enable_events=True, key='-DOWNLOAD-', font='Helvetica 16'), 
          sg.Button('Show data',enable_events=True, key='-SHOW-', font='Helvetica 16', size=(10,1))],
         [sg.Button("Select features", key='-SELECT_MAIN-',font=('Helvetica', 12))],
-        [sg.Button("Describe stat", key='-STAT-',font=('Helvetica', 12))],
         [sg.Button("Predict for one date", key='-PREDONE-',font=('Helvetica', 12))],
         [sg.Button("Predict for custom period", key='-PREDPER-',font=('Helvetica', 12))],
         [sg.Button("Current predict", key='-PREDCUR-',font=('Helvetica', 12))],
-        [sg.Button("Other", key='-OTHER-',font=('Helvetica', 12))],
         [sg.Canvas(size=(350,350), key='-CANVAS-', pad=(20,20))],
         [sg.Button('Exit')],
         ]
@@ -513,16 +480,12 @@ while True:
         if event == '-SELECT_MAIN-':
             features = select_features()
             window['-SELECTED-'].update(features)
-        if event == '-STAT-':
-            show_stats(df, features = features)
         if event == '-PREDONE-':
-            predict_test(df, features = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15])
+            predict_test(df, features = features)
         if event =='-PREDPER-':
             per_predict_test(df, features = features)
         if event == '-PREDCUR-':
             one_predict(df, features = features)
-        if event == '-OTHER-':
-            subprocess.Popen('Other\Other.exe')
 
     except Exception as e:
             print(f'Произошла ошибка: {e}')
