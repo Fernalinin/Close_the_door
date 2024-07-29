@@ -1,7 +1,7 @@
 # Close_the_door
 forex_try is aimed at identifying income among the customer database. I created a test transaction history of 100 clients based on the trades of free trading robots from Metatrader 5.
 
-Main Menu:
+Main Menu:        
 Download data - download .csv file with transaction history.     
 Show data - creates a window with a data table to view     
 Select features - opens a window for selecting features that are involved in training the model. Decryption in the same window;     
